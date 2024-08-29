@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
+import useUpload from "@/hooks/useUpload";
+import { useRouter } from "next/navigation";
 import {
   CheckCircleIcon,
   CircleArrowDown,
@@ -11,14 +13,36 @@ import {
 } from "lucide-react";
 
 function FileUploader() {
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    // Do something with the files
-    console.log(acceptedFiles);
-  }, []);
+  const { progress, status, fileId, handleUpload } = useUpload();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (fileId) {
+      router.push(`/dashboard/files/${fileId}`);
+    }
+  }, [fileId, router]);
+
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      // Do something with the files
+      const file = acceptedFiles[0];
+      if (file) {
+        await handleUpload(file);
+      } else {
+        // do nothing...
+        // toast...
+      }
+    },
+    [handleUpload]
+  );
 
   const { getRootProps, getInputProps, isDragActive, isFocused, isDragAccept } =
     useDropzone({
       onDrop,
+      maxFiles: 1,
+      accept: {
+        "application/pdf": [".pdf"],
+      },
     });
 
   return (
